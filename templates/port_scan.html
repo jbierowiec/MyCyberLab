@@ -1,0 +1,137 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Port Scanner (Simulation)</h2>
+  <form method="POST">
+    <input type="text" name="domain" placeholder="Enter domain or IP" required class="form-control mb-3">
+    <button type="submit" class="btn btn-warning">Scan</button>
+  </form>
+
+  {% if results %}
+    <div class="card mt-4 mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Risk Level</h5>
+        <p>
+          {% if risk == 'High' %}
+            <span class="badge bg-danger">High</span>
+          {% elif risk == 'Medium' %}
+            <span class="badge bg-warning text-dark">Medium</span>
+          {% else %}
+            <span class="badge bg-success">Low</span>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    {% for group, ports in results.items() %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">{{ group }} Ports</h5>
+        <table class="table table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>Port</th>
+              <th>Status</th>
+              <th>Latency (ms)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in ports %}
+            <tr>
+              <td>{{ p.port }}</td>
+              <td>
+                {% if p.status == 'open' %}
+                  <span class="badge bg-success">Open</span>
+                {% else %}
+                  <span class="badge bg-secondary">Closed</span>
+                {% endif %}
+              </td>
+              <td>{{ p.latency }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="d-flex gap-3 mb-5">
+      <button class="btn btn-outline-secondary" onclick="downloadTextReport()">Download .txt</button>
+      <button class="btn btn-outline-primary" onclick="downloadCsvReport()">Download .csv</button>
+      <button class="btn btn-outline-dark" onclick="downloadPdfReport()">Download .pdf</button>
+    </div>
+  {% endif %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+function downloadTextReport() {
+  let content = 'Simulated Port Scan Report\n\n';
+  document.querySelectorAll('table').forEach(table => {
+    const title = table.closest('.card').querySelector('.card-title').innerText;
+    content += `\n${title}\n`;
+    table.querySelectorAll('tbody tr').forEach(row => {
+      const port = row.children[0].innerText;
+      const status = row.children[1].innerText.trim();
+      const latency = row.children[2].innerText;
+      content += `Port ${port}: ${status}, Latency: ${latency} ms\n`;
+    });
+  });
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'port_scan_report.txt';
+  a.click();
+}
+
+function downloadCsvReport() {
+  let content = 'Group,Port,Status,Latency (ms)\n';
+  document.querySelectorAll('table').forEach(table => {
+    const group = table.closest('.card').querySelector('.card-title').innerText;
+    table.querySelectorAll('tbody tr').forEach(row => {
+      const port = row.children[0].innerText;
+      const status = row.children[1].innerText.trim();
+      const latency = row.children[2].innerText;
+      content += `${group},${port},${status},${latency}\n`;
+    });
+  });
+  const blob = new Blob([content], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'port_scan_report.csv';
+  a.click();
+}
+
+async function downloadPdfReport() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(18);
+  doc.text("Simulated Port Scan Report", 14, 20);
+  doc.setFontSize(12);
+  let y = 30;
+
+  document.querySelectorAll('table').forEach(table => {
+    const group = table.closest('.card').querySelector('.card-title').innerText;
+    const lines = [`${group}`];
+    table.querySelectorAll('tbody tr').forEach(row => {
+      const port = row.children[0].innerText;
+      const status = row.children[1].innerText.trim();
+      const latency = row.children[2].innerText;
+      lines.push(`Port ${port}: ${status}, Latency: ${latency} ms`);
+    });
+    lines.forEach(line => {
+      const split = doc.splitTextToSize(line, 180);
+      doc.text(split, 14, y);
+      y += split.length * 8;
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+    y += 6;
+  });
+  doc.save("port_scan_report.pdf");
+}
+</script>
+{% endblock %}

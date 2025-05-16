@@ -1,0 +1,76 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    scroll-behavior: smooth;
+}
+
+.topnav {
+    display: flex;
+    justify-content: space-between;
+    background-color: #222;
+    padding: 1em;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.nav-left a, .nav-right a {
+    color: white;
+    padding: 0 15px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-left a:hover, .nav-right a:hover {
+    color: #ffcc00;
+}
+
+.page-section {
+    height: 100vh;
+    padding: 60px 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #f4f4f4;
+    border-bottom: 1px solid #ccc;
+}
+
+.footer {
+    background-color: #222;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-size: 16px;
+    position: relative;
+}
+
+.footer a {
+    color: #ccc;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.footer a:hover {
+    color: white;
+}
+
+form input, form textarea, form button {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+form button {
+    background-color: #111;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #444;
+}

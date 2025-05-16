@@ -1,0 +1,91 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">XSS Demo Tester</h2>
+  <p class="text-muted">Enter HTML/JS below to see how browsers handle rendering potentially unsafe content. This environment is sandboxed and for educational purposes only.</p>
+
+  <div class="mb-3">
+    <label for="sampleSelector" class="form-label">Try a sample injection:</label>
+    <select id="sampleSelector" class="form-select" onchange="loadSample(this.value)">
+      <option value="">-- Select a sample --</option>
+      <option value="<b>This is bold text</b>">Bold HTML</option>
+      <option value="<img src='x' onerror='alert(\'XSS Alert!\')'>">Image onerror XSS</option>
+      <option value="<script>alert(\'Injected Script\');</script>">Script Injection</option>
+      <option value="<svg onload='alert(\'SVG Load\')'></svg>">SVG onload XSS</option>
+      <option value="<button onclick='console.log(\'Clicked\')'>Click me</button>">Benign JS Event</option>
+    </select>
+  </div>
+
+  <form method="POST">
+    <textarea name="xss_input" placeholder="Enter HTML or JavaScript snippet..." rows="4" class="form-control mb-3" id="xssTextarea"></textarea>
+    <button type="submit" class="btn btn-danger">Inject</button>
+    <button type="button" class="btn btn-secondary ms-2" onclick="resetSandbox()">Clear Output</button>
+  </form>
+
+  <div id="warnings" class="mt-3"></div>
+
+  {% if output %}
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Rendered in Sandbox</h5>
+            <iframe sandbox="allow-scripts" class="w-100 border mt-2" style="height: 300px;" id="sandboxFrame"></iframe>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Escaped Preview</h5>
+            <pre class="border p-2 mt-2 bg-light">{{ output }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const dangerousTags = ['<script', '<iframe', '<img', 'onerror', 'onload', '<svg', '<object'];
+    const inputField = document.getElementById('xssTextarea');
+    const warningsDiv = document.getElementById('warnings');
+
+    inputField.addEventListener('input', () => {
+      const val = inputField.value.toLowerCase();
+      const detected = dangerousTags.filter(tag => val.includes(tag));
+      warningsDiv.innerHTML = '';
+      if (detected.length) {
+        detected.forEach(tag => {
+          const badge = document.createElement('span');
+          badge.className = 'badge bg-warning text-dark me-2';
+          badge.innerText = `Detected: ${tag}`;
+          warningsDiv.appendChild(badge);
+        });
+      }
+    });
+
+    {% if output %}
+    const sandbox = document.getElementById('sandboxFrame');
+    const blob = new Blob([`<html><body>${`{{ output|safe }}`}</body></html>`], { type: 'text/html' });
+    sandbox.src = URL.createObjectURL(blob);
+    {% endif %}
+  });
+
+  function resetSandbox() {
+    const iframe = document.getElementById('sandboxFrame');
+    if (iframe) iframe.src = 'about:blank';
+    document.getElementById('xssTextarea').value = '';
+    document.getElementById('warnings').innerHTML = '';
+    document.getElementById('sampleSelector').selectedIndex = 0;
+  }
+
+  function loadSample(val) {
+    document.getElementById('xssTextarea').value = val;
+    const event = new Event('input');
+    document.getElementById('xssTextarea').dispatchEvent(event);
+  }
+</script>
+{% endblock %}

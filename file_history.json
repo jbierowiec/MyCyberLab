@@ -1,0 +1,21 @@
+{
+  "jbierowiec3@gmail.com": {
+    "uploads": [],
+    "downloads": []
+  },
+  "jbierowiec@fordham.edu": {
+    "uploads": [
+      "hw3_v1_solutions.pdf",
+      "France.png",
+      "test.py",
+      "encrypted_test.py"
+    ],
+    "downloads": [
+      "hw3_v1_solutions.pdf_metadata_report",
+      "France.png_metadata_report",
+      "encrypted_test.py",
+      "decrypted_encrypted_test.py",
+      "keylog.txt"
+    ]
+  }
+}

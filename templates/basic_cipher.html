@@ -1,0 +1,95 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>Encrypt File</h2>
+  <form action="/encrypt" method="post" enctype="multipart/form-data" class="mb-5">
+    <div class="mb-3">
+      <label for="file" class="form-label">Upload File:</label>
+      <input type="file" class="form-control" name="file" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="cipher" class="form-label">Choose Cipher:</label>
+      <select name="cipher" id="cipher" class="form-select" required>
+        <option value="caesar">Caesar Cipher</option>
+        <option value="vigenere">Vigenère Cipher</option>
+      </select>
+    </div>
+
+    <div id="caesar-options" class="mb-3">
+      <label for="shift" class="form-label">Shift (for Caesar):</label>
+      <input type="number" class="form-control" name="shift" id="shift">
+    </div>
+
+    <div id="vigenere-options" class="mb-3" style="display:none;">
+      <label for="key" class="form-label">Key (for Vigenère):</label>
+      <input type="text" class="form-control" name="key" id="key">
+    </div>
+
+    <button type="submit" class="btn btn-success">Encrypt & Download</button>
+  </form>
+
+  <h2>Decrypt File</h2>
+  <form action="/decrypt" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="file" class="form-label">Upload Encrypted File:</label>
+      <input type="file" class="form-control" name="file" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="cipher" class="form-label">Choose Cipher:</label>
+      <select name="cipher" id="decipher" class="form-select" required>
+        <option value="caesar">Caesar Cipher</option>
+        <option value="vigenere">Vigenère Cipher</option>
+      </select>
+    </div>
+
+    <div id="decipher-caesar-options" class="mb-3">
+      <label for="shift" class="form-label">Shift (for Caesar):</label>
+      <input type="number" class="form-control" name="shift" id="decipher-shift">
+    </div>
+
+    <div id="decipher-vigenere-options" class="mb-3" style="display:none;">
+      <label for="key" class="form-label">Key (for Vigenère):</label>
+      <input type="text" class="form-control" name="key" id="decipher-key">
+    </div>
+
+    <button type="submit" class="btn btn-warning">Decrypt & Download</button>
+  </form>
+</div>
+
+<script>
+  document.getElementById("cipher").addEventListener("change", function () {
+    let caesarOptions = document.getElementById("caesar-options");
+    let vigenereOptions = document.getElementById("vigenere-options");
+    let shiftInput = document.getElementById("shift");
+
+    if (this.value === "caesar") {
+      caesarOptions.style.display = "block";
+      vigenereOptions.style.display = "none";
+      shiftInput.disabled = false;
+    } else {
+      caesarOptions.style.display = "none";
+      vigenereOptions.style.display = "block";
+      shiftInput.disabled = true;
+    }
+  });
+
+  document.getElementById("decipher").addEventListener("change", function () {
+    let caesarOptions = document.getElementById("decipher-caesar-options");
+    let vigenereOptions = document.getElementById("decipher-vigenere-options");
+    let shiftInput = document.getElementById("decipher-shift");
+
+    if (this.value === "caesar") {
+      caesarOptions.style.display = "block";
+      vigenereOptions.style.display = "none";
+      shiftInput.disabled = false;
+    } else {
+      caesarOptions.style.display = "none";
+      vigenereOptions.style.display = "block";
+      shiftInput.disabled = true;
+    }
+  });
+</script>
+{% endblock %}

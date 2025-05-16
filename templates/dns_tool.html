@@ -1,0 +1,35 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">DNS Lookup Tool</h2>
+  <form method="POST">
+    <input type="text" name="domain" placeholder="Enter domain" required class="form-control mb-3">
+    <button type="submit" class="btn btn-primary">Lookup</button>
+  </form>
+
+  {% if result %}
+    <div class="card mt-4 mb-5">
+      <div class="card-body">
+        <h5 class="card-title">DNS Records Found</h5>
+        <ul class="list-group list-group-flush">
+          {% for record_type, values in result.items() %}
+            <li class="list-group-item">
+              <span class="badge bg-secondary me-2">{{ record_type }}</span>
+              {% if values %}
+                <ul class="mb-0">
+                  {% for val in values %}
+                    <li>{{ val }}</li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <em>No records found</em>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

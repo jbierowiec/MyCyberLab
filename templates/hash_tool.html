@@ -1,0 +1,55 @@
+{% extends 'dashboard.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Hash Generator & Verifier</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <textarea name="data" class="form-control" placeholder="Enter text to hash">{{ text_input }}</textarea>
+    </div>
+    <div class="mb-3">
+      <label for="file" class="form-label">Or upload a file:</label>
+      <input type="file" name="file" class="form-control">
+    </div>
+    <div class="mb-3">
+      <input type="text" name="compare_hash" placeholder="Paste hash here to verify" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-dark">Generate Hashes</button>
+  </form>
+
+  {% if result %}
+    <div class="card mt-4">
+      <div class="card-body">
+        <h5 class="card-title">Generated Hashes {% if uploaded_filename %}(File: {{ uploaded_filename }}){% endif %}</h5>
+        <ul class="list-group list-group-flush" id="hashList">
+          {% for algo, digest in result.items() %}
+            <li class="list-group-item"><strong>{{ algo }}:</strong> {{ digest }}</li>
+          {% endfor %}
+        </ul>
+        {% if verified is not none %}
+          <div class="mt-3 alert alert-{{ 'success' if verified else 'danger' }}">
+            Hash {{ 'matches' if verified else 'does NOT match' }} input.
+          </div>
+        {% endif %}
+        <button class="btn btn-outline-secondary mt-3" onclick="downloadHashReport()">Download Report</button>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+function downloadHashReport() {
+  const listItems = document.querySelectorAll('#hashList li');
+  let text = 'Hash Report\\n\\n';
+  listItems.forEach(item => {
+    text += item.innerText + '\\n';
+  });
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hash_report.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">IP Lookup Tool</h2>
+  <form method="POST">
+    <input type="text" name="ip" placeholder="Enter domain" required class="form-control mb-3">
+    <button type="submit" class="btn btn-primary">Lookup</button>
+  </form>
+  {% if ip_info %}
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">IP Details</h5>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><strong>IP Address:</strong> {{ ip_info.query }}</li>
+          <li class="list-group-item"><strong>Country:</strong> {{ ip_info.country }}</li>
+          <li class="list-group-item"><strong>Region:</strong> {{ ip_info.regionName }}</li>
+          <li class="list-group-item"><strong>City:</strong> {{ ip_info.city }}</li>
+          <li class="list-group-item"><strong>ISP:</strong> {{ ip_info.isp }}</li>
+          <li class="list-group-item"><strong>Organization:</strong> {{ ip_info.org }}</li>
+          <li class="list-group-item"><strong>Latitude:</strong> {{ ip_info.lat }}</li>
+          <li class="list-group-item"><strong>Longitude:</strong> {{ ip_info.lon }}</li>
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

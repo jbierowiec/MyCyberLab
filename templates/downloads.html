@@ -1,0 +1,22 @@
+{% extends 'dashboard.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Your Downloads</h2>
+  {% if downloads %}
+    <ul class="list-group mt-3">
+      {% for file in downloads %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ file }}
+        <form action="{{ url_for('delete_file') }}" method="post" class="mb-0">
+          <input type="hidden" name="file_type" value="downloads">
+          <input type="hidden" name="filename" value="{{ file }}">
+          <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+        </form>
+      </li>      
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No downloads yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
