@@ -144,8 +144,18 @@ def dashboard():
 
 @app.route("/login")
 def login():
+    # Force redirect URI to exactly match the one in Google Cloud
     redirect_uri = "https://mycyberlab-production.up.railway.app/login/google/authorized"
+    print(f"[DEBUG] Sending Google redirect URI: {redirect_uri}")
     return google.authorize_redirect(redirect_uri)
+
+@app.route("/login/google/authorized")
+def authorized():
+    token = google.authorize_access_token()
+    resp = google.get("/oauth2/v2/userinfo")
+    user_info = resp.json()
+    return render_template("dashboard.html", user=user_info)
+
 
 @app.route("/logout")
 def logout():
