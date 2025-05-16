@@ -142,6 +142,11 @@ def dashboard():
     user_info = resp.json()
     return render_template("dashboard.html", user=user_info, show_welcome=True)
 
+@app.route("/login")
+def login():
+    redirect_uri = "https://mycyberlab-production.up.railway.app/login/google/authorized"
+    return google.authorize_redirect(redirect_uri)
+
 @app.route("/logout")
 def logout():
     session.clear()
