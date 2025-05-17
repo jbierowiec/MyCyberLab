@@ -37,7 +37,7 @@ google_bp = make_google_blueprint(
 )
 app.register_blueprint(google_bp, url_prefix="/login")
 
-
+app.config['SERVER_NAME'] = 'mycyberlab-production.up.railway.app'
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
