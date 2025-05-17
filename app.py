@@ -25,17 +25,16 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"  # only for local testing
+
 google_bp = make_google_blueprint(
     client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
-    scope=[
-        "https://www.googleapis.com/auth/userinfo.email",
-        "https://www.googleapis.com/auth/userinfo.profile",
-        "openid"
-    ],
-    redirect_to="dashboard"
+    redirect_to="dashboard",  # or whichever route to go to after login
+    scope=["profile", "email"]
 )
 app.register_blueprint(google_bp, url_prefix="/login")
+
 
 app.config['SERVER_NAME'] = 'mycyberlab-production.up.railway.app'
 
@@ -129,7 +128,7 @@ Message:
         print("Error:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
-
+'''
 @app.route("/dashboard")
 def dashboard():
     if not google.authorized:
@@ -141,6 +140,26 @@ def dashboard():
 
     user_info = resp.json()
     return render_template("dashboard.html", user=user_info, show_welcome=True)
+'''
+
+@app.route("/dashboard")
+def dashboard():
+    if not google.authorized:
+        return redirect(url_for("google.login"))
+
+    resp = google.get("/oauth2/v2/userinfo")
+    if not resp.ok:
+        return f"Failed to fetch user info: {resp.text}", 500
+
+    user_info = resp.json()
+    session['user'] = {
+        'name': user_info['name'],
+        'email': user_info['email'],
+        'picture': user_info.get('picture', '')
+    }
+
+    return render_template("dashboard.html", user=session['user'], show_welcome=True)
+
 
 '''
 @app.route("/login")
@@ -158,11 +177,19 @@ def authorized():
     user_info = resp.json()
     return render_template("dashboard.html", user=user_info)
 
-
+'''
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("index"))
+'''
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("Logged out successfully!", "success")
+    return redirect(url_for("index"))
+
 
 @app.route("/ip-info", methods=["GET", "POST"])
 def ip_info():
