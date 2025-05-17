@@ -17,6 +17,9 @@ import socket
 import chardet
 import PyPDF2
 import re
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 load_dotenv()
 
@@ -144,21 +147,28 @@ def dashboard():
 
 @app.route("/dashboard")
 def dashboard():
-    if not google.authorized:
-        return redirect(url_for("google.login"))
+    try:
+        if not google.authorized:
+            return redirect(url_for("google.login"))
 
-    resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return f"Failed to fetch user info: {resp.text}", 500
+        resp = google.get("/oauth2/v2/userinfo")
+        if not resp.ok:
+            return f"Failed to fetch user info: {resp.text}", 500
 
-    user_info = resp.json()
-    session['user'] = {
-        'name': user_info['name'],
-        'email': user_info['email'],
-        'picture': user_info.get('picture', '')
-    }
+        user_info = resp.json()
+        session['user'] = {
+            'name': user_info['name'],
+            'email': user_info['email'],
+            'picture': user_info.get('picture', '')
+        }
 
-    return render_template("dashboard.html", user=session['user'], show_welcome=True)
+        return render_template("dashboard.html", user=session['user'], show_welcome=True)
+
+    except Exception as e:
+        import traceback
+        print("=== ERROR DURING DASHBOARD ===")
+        traceback.print_exc()
+        return f"Internal Server Error: {str(e)}", 500
 
 
 '''
