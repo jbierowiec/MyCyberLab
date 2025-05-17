@@ -1,10 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_file, flash, send_from_directory, flash
 from flask_session import Session
-from flask_dance.contrib.google import make_google_blueprint, google
 from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from PIL import Image, ExifTags
+import firebase_admin
+from firebase_admin import credentials, auth
+from flask import request, session, redirect
 
 import authlib
 import dns.resolver
@@ -20,7 +22,7 @@ import re
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-
+'''
 load_dotenv()
 
 
@@ -40,6 +42,68 @@ app.register_blueprint(google_bp, url_prefix="/login")
 
 
 app.config['SERVER_NAME'] = 'mycyberlab-production.up.railway.app'
+'''
+
+from flask import Flask, render_template, request, redirect, session, jsonify
+from flask_session import Session
+import firebase_admin
+from firebase_admin import credentials, auth
+import os
+import json
+
+# --- Flask App Setup ---
+app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersecretkey")
+
+# Configure Flask-Session
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
+
+# --- Initialize Firebase Admin ---
+firebase_key_path = "mycyberlab-385dc-firebase-adminsdk-fbsvc-7965feb867.json"
+if not firebase_admin._apps:
+    cred = credentials.Certificate(firebase_key_path)
+    firebase_admin.initialize_app(cred)
+
+# --- Routes ---
+
+@app.route('/')
+def home():
+    if 'user' in session:
+        return redirect('/dashboard')
+    return redirect('/login')
+
+@app.route('/login')
+def login():
+    return render_template("login.html")
+
+@app.route('/sessionLogin', methods=['POST'])
+def session_login():
+    data = request.get_json()
+    id_token = data.get('idToken')
+
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        session['user'] = {
+            'uid': decoded_token['uid'],
+            'email': decoded_token.get('email'),
+            'name': decoded_token.get('name', ''),
+        }
+        return jsonify({"message": "Login successful"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 401
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({"message": "Logged out"}), 200
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user' not in session:
+        return redirect('/login')
+    return render_template("index.html", user=session['user'])
+
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -76,12 +140,13 @@ def uploaded_file(filename):
 
 
 
-
+'''
 @app.route("/")
 def index():
     return render_template("index.html")
 
 from flask import request, jsonify
+'''
 
 @app.route('/contact', methods=['POST'])
 def contact():
@@ -145,6 +210,7 @@ def dashboard():
     return render_template("dashboard.html", user=user_info, show_welcome=True)
 '''
 
+'''
 @app.route("/dashboard")
 def dashboard():
     try:
@@ -169,7 +235,7 @@ def dashboard():
         print("=== ERROR DURING DASHBOARD ===")
         traceback.print_exc()
         return f"Internal Server Error: {str(e)}", 500
-
+'''
 
 '''
 @app.route("/login")
@@ -180,13 +246,14 @@ def login():
     return google.authorize_redirect(redirect_uri)
 '''
     
+'''
 @app.route("/login/google/authorized")
 def authorized():
     token = google.authorize_access_token()
     resp = google.get("/oauth2/v2/userinfo")
     user_info = resp.json()
     return render_template("dashboard.html", user=user_info)
-
+'''
 '''
 @app.route("/logout")
 def logout():
@@ -203,6 +270,7 @@ def logout():
 
 @app.route("/ip-info", methods=["GET", "POST"])
 def ip_info():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -210,16 +278,18 @@ def ip_info():
     if not resp.ok:
         return f"Failed to fetch user info: {resp.text}", 500
     user = resp.json()
+    '''
 
     ip_info = None
     if request.method == "POST":
         ip = request.form['ip']
         ip_info = get_ip_info(ip)
 
-    return render_template("ip_info.html", ip_info=ip_info, user=user)
+    return render_template("ip_info.html", ip_info=ip_info)
 
 @app.route("/key-logger", methods=["GET"])
 def key_logger():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -228,10 +298,12 @@ def key_logger():
         return f"Failed to fetch user info: {resp.text}", 500
 
     user = resp.json()
-    return render_template("key_logger.html", user=user)
+    '''
+    return render_template("key_logger.html")
 
 @app.route('/download-keylog', methods=['POST'])
 def download_keylog():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -239,6 +311,7 @@ def download_keylog():
     if not resp.ok:
         return f"Failed to fetch user info: {resp.text}", 500
     user = resp.json()
+    '''
 
     name = request.form.get('name', 'Unknown')
     title = request.form.get('title', 'No Title')
@@ -255,12 +328,13 @@ def download_keylog():
         file.write(f"Message: {message}\n")
         file.write(f"Keystrokes: {keystrokes}\n")
 
-    record_user_file(user['email'], filename, 'downloads')
+    #record_user_file(user['email'], filename, 'downloads')
 
     return send_file(file_path, as_attachment=True)
 
 @app.route("/basic-cipher", methods=["GET", "POST"])
 def basic_cipher():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -269,10 +343,12 @@ def basic_cipher():
         return f"Failed to fetch user info: {resp.text}", 500
 
     user = resp.json()
-    return render_template("basic_cipher.html", user=user)
+    '''
+    return render_template("basic_cipher.html")
 
 @app.route('/encrypt', methods=['POST'])
 def encrypt():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -280,6 +356,7 @@ def encrypt():
     if not resp.ok:
         return f"Failed to fetch user info: {resp.text}", 500
     user = resp.json()
+    '''
     
     file = request.files['file']
     cipher_type = request.form['cipher']
@@ -294,8 +371,8 @@ def encrypt():
         with open(file_path, 'r') as f:
             text = f.read()
         
-        record_user_file(user['email'], filename, 'uploads')
-        record_user_file(user['email'], f"encrypted_{filename}", 'downloads')
+        #record_user_file(user['email'], filename, 'uploads')
+        #record_user_file(user['email'], f"encrypted_{filename}", 'downloads')
 
         if cipher_type == 'caesar':
             encrypted_text = caesar_cipher(text, shift)
@@ -310,6 +387,7 @@ def encrypt():
 
 @app.route('/decrypt', methods=['POST'])
 def decrypt():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -317,6 +395,7 @@ def decrypt():
     if not resp.ok:
         return f"Failed to fetch user info: {resp.text}", 500
     user = resp.json()
+    '''
     
     file = request.files['file']
     cipher_type = request.form['cipher']
@@ -331,8 +410,8 @@ def decrypt():
         with open(file_path, 'r') as f:
             text = f.read()
             
-        record_user_file(user['email'], filename, 'uploads')
-        record_user_file(user['email'], f"decrypted_{filename}", 'downloads')
+        #record_user_file(user['email'], filename, 'uploads')
+        #record_user_file(user['email'], f"decrypted_{filename}", 'downloads')
         
         if cipher_type == 'caesar':
             decrypted_text = caesar_cipher(text, -shift)
@@ -348,6 +427,7 @@ def decrypt():
 @app.route('/file-metadata', methods=['GET', 'POST'])
 def file_metadata():
     metadata = None
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -356,6 +436,7 @@ def file_metadata():
         return f"Failed to fetch user info: {resp.text}", 500
 
     user = resp.json()
+    '''
 
     if request.method == 'POST':
         file = request.files['file']
@@ -363,8 +444,8 @@ def file_metadata():
             filename = file.filename
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
-            record_user_file(user['email'], filename, 'uploads')
-            record_user_file(user['email'], f"{filename}_metadata_report", 'downloads')
+            #record_user_file(user['email'], filename, 'uploads')
+            #record_user_file(user['email'], f"{filename}_metadata_report", 'downloads')
 
             metadata = {
                 'Filename': filename,
@@ -425,10 +506,11 @@ def file_metadata():
                 except:
                     pass
 
-    return render_template('file_metadata.html', metadata=metadata, user=user)
+    return render_template('file_metadata.html', metadata=metadata)
 
 @app.route('/uploads')
 def view_uploads():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -437,26 +519,33 @@ def view_uploads():
         return f"Failed to fetch user info: {resp.text}", 500
 
     user = resp.json()
+    '''
     data = load_file_history()
-    uploads = data.get(user['email'], {}).get('uploads', [])
-    return render_template('uploads.html', uploads=uploads, user=user)
+    #uploads = data.get(user['email'], {}).get('uploads', [])
+    return render_template('uploads.html')
 
 @app.route('/downloads')
 def view_downloads():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
     resp = google.get("/oauth2/v2/userinfo")
     if not resp.ok:
         return f"Failed to fetch user info: {resp.text}", 500
-
+    
+        
     user = resp.json()
+    '''
+
     data = load_file_history()
-    downloads = data.get(user['email'], {}).get('downloads', [])
-    return render_template('downloads.html', downloads=downloads, user=user)
+    #downloads = data.get(user['email'], {}).get('downloads', [])
+    #return render_template('downloads.html', downloads=downloads)
+    return render_template('downloads.html')
 
 @app.route('/delete-file', methods=['POST'])
 def delete_file():
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -464,21 +553,24 @@ def delete_file():
     if not resp.ok:
         return f"Failed to fetch user info: {resp.text}", 500
     user = resp.json()
+    '''
 
     file_type = request.form.get('file_type')
     filename = request.form.get('filename')
 
     data = load_file_history()
-    user_history = data.get(user['email'], {file_type: []})
+    #user_history = data.get(user['email'], {file_type: []})
 
+    '''
     if filename in user_history.get(file_type, []):
         user_history[file_type].remove(filename)
 
         file_path = os.path.join('uploads', filename)
         if os.path.exists(file_path):
             os.remove(file_path)
+    '''
 
-    data[user['email']] = user_history
+    #data[user['email']] = user_history
     save_file_history(data)
 
     flash(f"{filename} removed from your {file_type} history.")
@@ -491,6 +583,7 @@ def delete_file():
 def dns_tool():
     result = {}
     
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -499,6 +592,7 @@ def dns_tool():
         return f"Failed to fetch user info: {resp.text}", 500
 
     user = resp.json()
+    '''
     
     if request.method == 'POST':
         domain = request.form['domain']
@@ -509,7 +603,7 @@ def dns_tool():
                 result[rtype] = [str(rdata) for rdata in answers]
             except Exception as e:
                 result[rtype] = [f'Error: {e}']
-    return render_template('dns_tool.html', result=result, user=user)
+    return render_template('dns_tool.html', result=result)
 
 
 # === XSS Demo Tester ===
@@ -517,6 +611,7 @@ def dns_tool():
 def xss_tester():
     output = ""
     
+    '''
     if not google.authorized:
         return redirect(url_for("google.login"))
 
@@ -525,24 +620,16 @@ def xss_tester():
         return f"Failed to fetch user info: {resp.text}", 500
 
     user = resp.json()
+    '''
     
     if request.method == 'POST':
         output = request.form.get('xss_input', '')
-    return render_template('xss_tester.html', output=output, user=user)
+    return render_template('xss_tester.html', output=output)
 
 # === Password Strength Checker ===
 @app.route('/password-strength', methods=['GET', 'POST'])
 def password_strength():
     feedback = ""
-    
-    if not google.authorized:
-        return redirect(url_for("google.login"))
-
-    resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return f"Failed to fetch user info: {resp.text}", 500
-
-    user = resp.json()
     
     if request.method == 'POST':
         pw = request.form['password']
@@ -554,7 +641,7 @@ def password_strength():
             any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?/' for c in pw)
         ])
         feedback = ["Very Weak", "Weak", "Fair", "Good", "Strong", "Very Strong"][score]
-    return render_template('password_strength.html', feedback=feedback, user=user)
+    return render_template('password_strength.html', feedback=feedback)
 
 # === Port Scanner Simulation ===
 @app.route('/port-scan', methods=['GET', 'POST'])
@@ -573,14 +660,7 @@ def port_scan():
     results = {}
     risk_level = 'Low'
 
-    if not google.authorized:
-        return redirect(url_for("google.login"))
 
-    resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return f"Failed to fetch user info: {resp.text}", 500
-
-    user = resp.json()
 
     if request.method == 'POST':
         domain = request.form['domain']
@@ -599,7 +679,7 @@ def port_scan():
         if any(p in open_ports for p in [3306, 5432]):
             risk_level = 'High'
 
-    return render_template('port_scan.html', results=results, user=user, risk=risk_level)
+    return render_template('port_scan.html', results=results, risk=risk_level)
 
 
 # === Hash Generator & Verifier ===
@@ -611,14 +691,9 @@ def hash_tool():
     text_input = ''
     uploaded_filename = None
 
-    if not google.authorized:
-        return redirect(url_for("google.login"))
 
-    resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return f"Failed to fetch user info: {resp.text}", 500
 
-    user = resp.json()
+
 
     if request.method == 'POST':
         text_input = request.form.get('data', '')
@@ -646,33 +721,21 @@ def hash_tool():
         'hash_tool.html',
         result=result,
         verified=verified,
-        user=user,
+        
         text_input=text_input,
         uploaded_filename=uploaded_filename
     )
 
 @app.route('/password-cracker')
 def password_cracker():
-    if not google.authorized:
-        return redirect(url_for("google.login"))
-
-    resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return f"Failed to fetch user info: {resp.text}", 500
-    user = resp.json()
     
-    return render_template('password_cracker.html', user=user)
+    
+    return render_template('password_cracker.html')
 
 @app.route('/save-log', methods=['POST'])
 def save_log():
-    if not google.authorized:
-        return redirect(url_for("google.login"))
-
-    resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return "Failed to fetch user info", 500
-    user = resp.json()
-    email = user['email']
+    
+    #email = user['email']
 
     data = request.get_json()
     csv_content = data.get("csv")
@@ -689,7 +752,7 @@ def save_log():
     with open(file_path, "w") as f:
         f.write(csv_content)
 
-    record_user_file(email, filename, "downloads")
+    #record_user_file(email, filename, "downloads")
     return {"message": "Saved successfully"}
 
 

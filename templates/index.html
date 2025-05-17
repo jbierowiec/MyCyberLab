@@ -1,126 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
-{% include 'head.html' %}
-<body>
+  {% include 'head.html' %}
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">MyCyberLab</a>
+        <div class="collapse navbar-collapse">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+            <li class="nav-item">
+              <a class="nav-link" href="#about">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#contact">Contact</a>
+            </li>
+          </ul>
+          <!--<a class="btn btn-outline-light" href="{{ url_for('google.login') }}">Login</a>-->
+          <a class="btn btn-outline-light" href="#" onclick="logout()"
+            >Logout</a
+          >
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">MyCyberLab</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
-      </ul>
-      <a class="btn btn-outline-light" href="{{ url_for('google.login') }}">Login</a>
-    </div>
-  </div>
-</nav>
+          <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js"></script>
+          <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-analytics.js"></script>
+          <script type="module">
+            const firebaseConfig = {
+              apiKey: "AIzaSyD3CPcsCumWEKYdpZ-AtZmmSd5zFgTB6DY",
+              authDomain: "mycyberlab-385dc.firebaseapp.com",
+              projectId: "mycyberlab-385dc",
+              storageBucket: "mycyberlab-385dc.firebasestorage.app",
+              messagingSenderId: "797601034997",
+              appId: "1:797601034997:web:d1917febdd0106a649cbbc",
+              measurementId: "G-7B3MDKFH64",
+            };
+            firebase.initializeApp(firebaseConfig);
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
+            function logout() {
+              firebase
+                .auth()
+                .signOut()
+                .then(() => {
+                  fetch("/logout", { method: "POST" }).then(
+                    () => (location.href = "/login")
+                  );
+                });
+            }
+          </script>
+        </div>
+      </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
     <div class="container mt-3">
       {% for category, msg in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ msg }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ msg }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
       {% endfor %}
     </div>
-  {% endif %}
-{% endwith %}
+    {% endif %} {% endwith %}
 
-<section id="home" class="section bg-light">
-  <div class="container">
-    <h1 class="display-4">Welcome to MyCyberLab</h1>
-  </div>
-</section>
-
-<section id="about" class="section bg-white">
-  <div class="container">
-    <h2>About Us</h2>
-    <p class="lead">This is a cybersecurity educational platform where users can explore tools like IP lookup, keylogging demos, and encryption methods.</p>
-  </div>
-</section>
-
-<section id="contact" class="section bg-light">
-  <div class="container">
-    <h2>Contact Us</h2>
-    <form id="contactForm" class="mx-auto" style="max-width: 600px;">
-      <div class="mb-3">
-        <label for="name" class="form-label">Your Name</label>
-        <input type="text" id="name" name="name" class="form-control" required>
+    <section id="home" class="section bg-light">
+      <div class="container">
+        <h1 class="display-4">Welcome to MyCyberLab</h1>
       </div>
-      <div class="mb-3">
-        <label for="email" class="form-label">Your Email</label>
-        <input type="email" id="email" name="email" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label for="message" class="form-label">Message</label>
-        <textarea id="message" name="message" rows="5" class="form-control" required></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Send Message</button>
-    </form>
-    
-    <!-- Alert for confirmation -->
-    <div id="alertContainer" class="container mt-3" style="display:none;">
-      <div id="alertBox" class="alert alert-success alert-dismissible fade show" role="alert">
-        ✅ Message sent successfully!
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    </div>    
-  </div>
-</section>
+    </section>
 
-<footer class="bg-dark text-white text-center py-4">
-  <div class="container">
-    <a href="#home">Home</a> |
-    <a href="#about">About</a> |
-    <a href="#contact">Contact</a>
-    <div class="mt-2">&copy; <span id="year"></span> MyCyberLab</div>
-  </div>
-</footer>
+    <section id="about" class="section bg-white">
+      <div class="container">
+        <h2>About Us</h2>
+        <p class="lead">
+          This is a cybersecurity educational platform where users can explore
+          tools like IP lookup, keylogging demos, and encryption methods.
+        </p>
+      </div>
+    </section>
 
-<script>
-  document.getElementById('contactForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-  
-    const data = {
-      name: document.getElementById("name").value,
-      email: document.getElementById("email").value,
-      message: document.getElementById("message").value
-    };
-  
-    // 1. Submit to Google Script
-    fetch("https://script.google.com/macros/s/AKfycbz5M4sDVFJaIdGBFPuH--XjEeqXwqHFKxp7AmiOWaLoTaaxAJId2W-KsEDedrWx3EWjIA/exec", {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(data)
-    });
-  
-    // 2. Submit to Flask backend
-    fetch("/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    })
-    .then(res => {
-      if (res.ok) {
-        document.getElementById("alertContainer").style.display = 'block';
-        document.getElementById("contactForm").reset();
-      } else {
-        alert("❌ Failed to send via email.");
-      }
-    })
-    .catch(err => {
-      alert("❌ Error submitting form.");
-      console.error(err);
-    });
-  });
-  
-  document.getElementById("year").textContent = new Date().getFullYear();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <section id="contact" class="section bg-light">
+      <div class="container">
+        <h2>Contact Us</h2>
+        <form id="contactForm" class="mx-auto" style="max-width: 600px">
+          <div class="mb-3">
+            <label for="name" class="form-label">Your Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Your Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="message" class="form-label">Message</label>
+            <textarea
+              id="message"
+              name="message"
+              rows="5"
+              class="form-control"
+              required
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Send Message</button>
+        </form>
+
+        <!-- Alert for confirmation -->
+        <div id="alertContainer" class="container mt-3" style="display: none">
+          <div
+            id="alertBox"
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            ✅ Message sent successfully!
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="bg-dark text-white text-center py-4">
+      <div class="container">
+        <a href="#home">Home</a> | <a href="#about">About</a> |
+        <a href="#contact">Contact</a>
+        <div class="mt-2">&copy; <span id="year"></span> MyCyberLab</div>
+      </div>
+    </footer>
+
+    <script>
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const data = {
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            message: document.getElementById("message").value,
+          };
+
+          // 1. Submit to Google Script
+          fetch(
+            "https://script.google.com/macros/s/AKfycbz5M4sDVFJaIdGBFPuH--XjEeqXwqHFKxp7AmiOWaLoTaaxAJId2W-KsEDedrWx3EWjIA/exec",
+            {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams(data),
+            }
+          );
+
+          // 2. Submit to Flask backend
+          fetch("/contact", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          })
+            .then((res) => {
+              if (res.ok) {
+                document.getElementById("alertContainer").style.display =
+                  "block";
+                document.getElementById("contactForm").reset();
+              } else {
+                alert("❌ Failed to send via email.");
+              }
+            })
+            .catch((err) => {
+              alert("❌ Error submitting form.");
+              console.error(err);
+            });
+        });
+
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>
